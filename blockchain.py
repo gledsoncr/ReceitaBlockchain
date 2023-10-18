@@ -1,14 +1,19 @@
 import hashlib
 import datetime as date
 
+# CRIAR encurtador de string para encurtar o hash
+# CRIAR modo de reverter a string encurtada para o hash original
+# ADICIONAR ao Bloco.print() "Código da consulta: VG6D265" que representa a string encurtada
+
 
 class Block:
     # Propriedades do Bloco
-    def __init__(self, index, timestamp, data, previous_hash):
+    def __init__(self, index, timestamp, previous_hash, validation_key, data):
         self.index = index
         self.timestamp = timestamp
         self.data = data
         self.previous_hash = previous_hash
+        self.validation_key = validation_key
         self.hash = self.calculate_hash()
 
     # Gera um hash para o bloco, considerando suas propriedades
@@ -17,7 +22,8 @@ class Block:
         sha.update(str(self.index).encode('utf-8') +
                    str(self.timestamp).encode('utf-8') +
                    str(self.data).encode('utf-8') +
-                   str(self.previous_hash).encode('utf-8'))
+                   str(self.previous_hash).encode('utf-8') +
+                   str(self.validation_key).encode('utf-8'))
         return sha.hexdigest()
 
     # Imprime no console de comando as propriedades do bloco
@@ -27,6 +33,7 @@ class Block:
         print(f'Timestamp: {self.timestamp}')
         print(f'Hash anterior: {self.previous_hash}')
         print(f'Hash: {self.hash}')
+        print(f'Chave de validação: {self.validation_key}')
         print(f'Dados: {self.data}')
 
 
@@ -37,20 +44,21 @@ class Blockchain:
 
     # Gera o bloco genesis, que representa o bloco 0 da blockchain
     def create_genesis_block(self):
-        return Block(0, date.datetime.now(), 'Genesis Block', '0')
+        return Block(0, date.datetime.now(), '0', '00000', 'Genesis Block')
 
     # Adiciona um novo bloco na blockchain
     def add_block(self, new_block):
-        new_block.previous_hash = self.last_hash()
+        new_block.previous_hash = self.last_hash()  # TODO: remove
         new_block.hash = new_block.calculate_hash()
         self.chain.append(new_block)
 
-    # Adiciona uma prescrição dentro de um bloco e em seguida adiciona este bloco na blockchain
-    def add_prescription(self, prescription):
+    # Registra os dados em um bloco, com uma chave de validação e em seguida adiciona este bloco na blockchain
+    def register_data(self, validation_key, data):
         new_block = Block(self.last_index() + 1,
                           date.datetime.now(),
-                          prescription,
-                          self.last_hash())
+                          self.last_hash(),
+                          validation_key,
+                          data)
         self.add_block(new_block)
 
     # Consulta a blockchain e retorna um bloco que tenha um hash correspondente
@@ -61,6 +69,13 @@ class Blockchain:
                 block = b
                 break
         return block
+
+    # Verifica se uma chave de validação é válida para um determinado bloco
+    def validation_key_is_valid(self, hash, validation_key):
+        block = self.get_block_by_hash(hash)
+        if block.validation_key != validation_key:
+            return False
+        return True
 
     # Retorna o valor de index do último bloco da blockchain
     def last_index(self):
@@ -91,15 +106,27 @@ class Blockchain:
 
 my_blockchain = Blockchain()
 
-receita1 = {'info': 'Info 1'}
-receita2 = {'info': 'Info 2'}
+data1 = {'info': 'Info 1'}
+my_blockchain.register_data(41235, data1)
 
-my_blockchain.add_prescription(receita1)
-my_blockchain.add_prescription(receita2)
+data2 = {'info': 'Info 2'}
+my_blockchain.register_data(65236, data2)
 
 print('\n', '='*100, '\n')
+print('- TESTANDO A VALIDAÇÃO DA ESTRUTURA DE DADOS DA BLOCKCHAIN')
 print(f'Essa blockchain está válida? {str(my_blockchain.is_valid())}')
+
 print('\n', '='*100, '\n')
+print('- VISUALIZANDO A BLOCKCHAIN')
 my_blockchain.print()
+
 print('\n', '='*100, '\n')
+print('- LOCALIZANDO UM BLOCO ATRAVÉS DE SEU HASH')
 my_blockchain.get_block_by_hash(my_blockchain.last_hash()).print()
+
+print('\n', '='*100, '\n')
+print('- VERIFICANDO SE UMA CHAVE DE VALIDAÇÃO É VÁLIDA')
+print(
+    f'\nChave de validação: {65236}\nHash: {my_blockchain.last_hash()}\nÉ válida? {my_blockchain.validation_key_is_valid(my_blockchain.last_hash(), 65236)}')
+print(
+    f'\nChave de validação: {56321}\nHash: {my_blockchain.last_hash()}\nÉ válida? {my_blockchain.validation_key_is_valid(my_blockchain.last_hash(), 56321)}')

@@ -1,10 +1,6 @@
 import hashlib
 import datetime as date
 
-# CRIAR encurtador de string para encurtar o hash
-# CRIAR modo de reverter a string encurtada para o hash original
-# ADICIONAR ao Bloco.print() "Código da consulta: VG6D265" que representa a string encurtada
-
 
 class Block:
     # Propriedades do Bloco
@@ -14,7 +10,14 @@ class Block:
         self.data = data
         self.previous_hash = previous_hash
         self.validation_key = validation_key
+        self.search_id = self.calculate_search_id()
         self.hash = self.calculate_hash()
+
+    # Gera um hash curto baseado no index do bloco
+    def calculate_search_id(self):
+        shake = hashlib.shake_128()
+        shake.update(str(self.index).encode('utf-8'))
+        return shake.hexdigest(3)
 
     # Gera um hash para o bloco, considerando suas propriedades
     def calculate_hash(self):
@@ -34,6 +37,7 @@ class Block:
         print(f'Hash anterior: {self.previous_hash}')
         print(f'Hash: {self.hash}')
         print(f'Chave de validação: {self.validation_key}')
+        print(f'Código de consulta: {self.search_id}')
         print(f'Dados: {self.data}')
 
 
@@ -61,18 +65,20 @@ class Blockchain:
                           data)
         self.add_block(new_block)
 
-    # Consulta a blockchain e retorna um bloco que tenha um hash correspondente
-    def get_block_by_hash(self, hash):
+    # Consulta a blockchain e retorna um bloco que tenha um search_id correspondente
+    def get_block_by_search_id(self, search_id):
         block = None
         for b in self.chain:
-            if b.hash == hash:
+            if b.search_id == search_id:
                 block = b
                 break
         return block
 
     # Verifica se uma chave de validação é válida para um determinado bloco
-    def validation_key_is_valid(self, hash, validation_key):
-        block = self.get_block_by_hash(hash)
+    def validation_key_is_valid(self, search_id, validation_key):
+        block = self.get_block_by_search_id(search_id)
+        if block == None:
+            return False
         if block.validation_key != validation_key:
             return False
         return True
@@ -120,13 +126,13 @@ print('\n', '='*100, '\n')
 print('- VISUALIZANDO A BLOCKCHAIN')
 my_blockchain.print()
 
-print('\n', '='*100, '\n')
-print('- LOCALIZANDO UM BLOCO ATRAVÉS DE SEU HASH')
-my_blockchain.get_block_by_hash(my_blockchain.last_hash()).print()
+# print('\n', '='*100, '\n')
+# print('- LOCALIZANDO UM BLOCO ATRAVÉS DE SEU HASH')
+# my_blockchain.get_block_by_hash(my_blockchain.last_hash()).print()
 
 print('\n', '='*100, '\n')
 print('- VERIFICANDO SE UMA CHAVE DE VALIDAÇÃO É VÁLIDA')
 print(
-    f'\nChave de validação: {65236}\nHash: {my_blockchain.last_hash()}\nÉ válida? {my_blockchain.validation_key_is_valid(my_blockchain.last_hash(), 65236)}')
+    f'\nChave de validação: {65236}\nCódigo de consulta: 4e9e38\nÉ válida? {my_blockchain.validation_key_is_valid("4e9e38", 65236)}')
 print(
-    f'\nChave de validação: {56321}\nHash: {my_blockchain.last_hash()}\nÉ válida? {my_blockchain.validation_key_is_valid(my_blockchain.last_hash(), 56321)}')
+    f'\nChave de validação: 56321\nCódigo de consulta: b35269\nÉ válida? {my_blockchain.validation_key_is_valid("b35269", 56321)}')

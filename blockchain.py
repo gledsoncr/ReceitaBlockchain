@@ -50,20 +50,14 @@ class Blockchain:
     def create_genesis_block(self):
         return Block(0, date.datetime.now(), '0', '00000', 'Genesis Block')
 
-    # Adiciona um novo bloco na blockchain
-    def add_block(self, new_block):
-        new_block.previous_hash = self.last_hash()  # TODO: remove
-        new_block.hash = new_block.calculate_hash()
-        self.chain.append(new_block)
-
-    # Registra os dados em um bloco, com uma chave de validação e em seguida adiciona este bloco na blockchain
-    def register_data(self, validation_key, data):
+    # Adiciona um novo bloco na blockchain com uma chave de validação
+    def add_block(self, validation_key, data):
         new_block = Block(self.last_index() + 1,
                           date.datetime.now(),
                           self.last_hash(),
                           validation_key,
                           data)
-        self.add_block(new_block)
+        self.chain.append(new_block)
 
     # Consulta a blockchain e retorna um bloco que tenha um search_id correspondente
     def get_block_by_search_id(self, search_id):
@@ -113,10 +107,10 @@ class Blockchain:
 my_blockchain = Blockchain()
 
 data1 = {'info': 'Info 1'}
-my_blockchain.register_data(41235, data1)
+my_blockchain.add_block(41235, data1)
 
 data2 = {'info': 'Info 2'}
-my_blockchain.register_data(65236, data2)
+my_blockchain.add_block(65236, data2)
 
 print('\n', '='*100, '\n')
 print('- TESTANDO A VALIDAÇÃO DA ESTRUTURA DE DADOS DA BLOCKCHAIN')
@@ -125,10 +119,6 @@ print(f'Essa blockchain está válida? {str(my_blockchain.is_valid())}')
 print('\n', '='*100, '\n')
 print('- VISUALIZANDO A BLOCKCHAIN')
 my_blockchain.print()
-
-# print('\n', '='*100, '\n')
-# print('- LOCALIZANDO UM BLOCO ATRAVÉS DE SEU HASH')
-# my_blockchain.get_block_by_hash(my_blockchain.last_hash()).print()
 
 print('\n', '='*100, '\n')
 print('- VERIFICANDO SE UMA CHAVE DE VALIDAÇÃO É VÁLIDA')
